@@ -23,8 +23,8 @@ def load_wallets():
 def keypair_from_seed(seed_phrase):
     seed_bytes = Bip39SeedGenerator(seed_phrase).Generate()
     bip44 = Bip44.FromSeed(seed_bytes, Bip44Coins.SOLANA)
-    private_key = bip44.Purpose().Coin().Account(0).Change(Bip44Changes.CHAIN_EXT).AddressIndex(0).PrivateKey().Raw().ToBytes()
-    return Keypair.from_seed(private_key)
+    priv_key = bip44.Purpose().Coin().Account(0).Change(Bip44Changes.CHAIN_EXT).AddressIndex(0).PrivateKey().Raw().ToBytes()
+    return Keypair.from_seed(priv_key)
 
 def send_signed_tx(wallet: Keypair, tx_base64: str):
     try:
@@ -34,7 +34,12 @@ def send_signed_tx(wallet: Keypair, tx_base64: str):
         raw_tx = base64.b64encode(txn.serialize()).decode()
         res = httpx.post(
             "https://api.mainnet-beta.solana.com",
-            json={"jsonrpc": "2.0", "id": 1, "method": "sendTransaction", "params": [raw_tx, {"skipPreflight": True}]}
+            json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "sendTransaction",
+                "params": [raw_tx, {"skipPreflight": True}]
+            }
         )
         txid = res.json().get("result")
         if txid:
@@ -46,22 +51,29 @@ def send_signed_tx(wallet: Keypair, tx_base64: str):
 
 def buy_token_jupiter(wallet: Keypair, mint_address: str):
     try:
-        q = requests.get("https://quote-api.jup.ag/v6/quote", params={
-            "inputMint": "So11111111111111111111111111111111111111112",
-            "outputMint": mint_address,
-            "amount": 1_000_000,
-            "slippage": 1
-        })
+        q = requests.get(
+            "https://quote-api.jup.ag/v6/quote",
+            params={
+                "inputMint": "So11111111111111111111111111111111111111112",
+                "outputMint": mint_address,
+                "amount": 1_000_000,
+                "slippage": 1
+            }
+        )
         routes = q.json().get("routes", [])
         if not routes:
             print("❌ Buy quote failed")
             return
-        sr = requests.post("https://quote-api.jup.ag/v6/swap", headers={"Content-Type": "application/json"}, data=json.dumps({
-            "route": routes[0],
-            "userPublicKey": str(wallet.pubkey()),
-            "wrapUnwrapSOL": True,
-            "computeUnitPriceMicroLamports": 1
-        }))
+        sr = requests.post(
+            "https://quote-api.jup.ag/v6/swap",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps({
+                "route": routes[0],
+                "userPublicKey": str(wallet.pubkey()),
+                "wrapUnwrapSOL": True,
+                "computeUnitPriceMicroLamports": 1
+            })
+        )
         swap_tx = sr.json().get("swapTransaction")
         if not swap_tx:
             print("❌ Buy swap failed")
@@ -72,22 +84,29 @@ def buy_token_jupiter(wallet: Keypair, mint_address: str):
 
 def sell_token_jupiter(wallet: Keypair, mint_address: str):
     try:
-        q = requests.get("https://quote-api.jup.ag/v6/quote", params={
-            "inputMint": mint_address,
-            "outputMint": "So11111111111111111111111111111111111111112",
-            "amount": 1_000_000,
-            "slippage": 1
-        })
+        q = requests.get(
+            "https://quote-api.jup.ag/v6/quote",
+            params={
+                "inputMint": mint_address,
+                "outputMint": "So11111111111111111111111111111111111111112",
+                "amount": 1_000_000,
+                "slippage": 1
+            }
+        )
         routes = q.json().get("routes", [])
         if not routes:
             print("❌ Sell quote failed")
             return
-        sr = requests.post("https://quote-api.jup.ag/v6/swap", headers={"Content-Type": "application/json"}, data=json.dumps({
-            "route": routes[0],
-            "userPublicKey": str(wallet.pubkey()),
-            "wrapUnwrapSOL": True,
-            "computeUnitPriceMicroLamports": 1
-        }))
+        sr = requests.post(
+            "https://quote-api.jup.ag/v6/swap",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps({
+                "route": routes[0],
+                "userPublicKey": str(wallet.pubkey()),
+                "wrapUnwrapSOL": True,
+                "computeUnitPriceMicroLamports": 1
+            })
+        )
         swap_tx = sr.json().get("swapTransaction")
         if not swap_tx:
             print("❌ Sell swap failed")
@@ -111,7 +130,11 @@ def fetch_market_data(mint_address: str):
         r = requests.get(f"https://api.dexscreener.com/latest/dex/pairs/solana/{mint_address}")
         if r.ok:
             pair = r.json().get("pair", {})
-            return {"priceUsd": pair.get("priceUsd", "N/A"), "marketCap": pair.get("marketCap", "N/A")}
+            return {
+                "priceUsd": pair.get("priceUsd", "N/A"),
+                "marketCap": pair.get("marketCap", "N/A")
+            }
     except Exception as e:
         print(f"❌ DexScreener error: {e}")
     return None
+
