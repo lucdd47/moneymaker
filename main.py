@@ -4,7 +4,6 @@ import string
 import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-
 from wallets import buy_token_with_all_wallets, sell_token_with_all_wallets, fetch_market_data
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
