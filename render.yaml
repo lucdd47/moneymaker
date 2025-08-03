@@ -2,8 +2,15 @@ services:
   - type: web
     name: rugpull-bot
     env: python
-    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python main.py
-    runtime: python-3.10
-    autoDeploy: true
+    startCommand: python3 main.py
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        fromDotEnv: true
+      - key: HF_API_TOKEN
+        fromDotEnv: true
+      - key: WALLET_1
+        fromDotEnv: true
+      - key: WALLET_2
+        fromDotEnv: true
+      # ... and so on
