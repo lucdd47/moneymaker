@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: rugpull-bot
+    env: python
+    env_vars:
+      - key: TELEGRAM_BOT_TOKEN
+        from_secret: TELEGRAM_BOT_TOKEN
+      - key: HF_API_TOKEN
+        from_secret: HF_API_TOKEN
+      - key: WALLET_1
+        from_secret: WALLET_1
+      # add WALLET_2 to WALLET_10 similarly
+    plan: free
+    build_command: pip install -r requirements.txt
+    start_command: python main.py
