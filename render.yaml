@@ -14,9 +14,4 @@ services:
         sync: false
       - key: WALLET_2
         sync: false
-      - key: WALLET_3
-        sync: false
-      - key: WALLET_4
-        sync: false
-      - key: WALLET_5
-        sync: false
+      # Add WALLET_3 through WALLET_10 if needed
