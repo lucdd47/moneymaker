@@ -1,16 +1,22 @@
 services:
   - type: web
-    name: rugpull-bot
-    env: python
+    name: memecoin-telegram-bot
+    runtime: python
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python3 main.py
     envVars:
       - key: TELEGRAM_BOT_TOKEN
-        fromDotEnv: true
+        sync: false
       - key: HF_API_TOKEN
-        fromDotEnv: true
+        sync: false
       - key: WALLET_1
-        fromDotEnv: true
+        sync: false
       - key: WALLET_2
-        fromDotEnv: true
-      # ... and so on
+        sync: false
+      - key: WALLET_3
+        sync: false
+      - key: WALLET_4
+        sync: false
+      - key: WALLET_5
+        sync: false
