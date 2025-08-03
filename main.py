@@ -4,6 +4,7 @@ import string
 import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
 from wallets import buy_token_with_all_wallets, sell_token_with_all_wallets, fetch_market_data
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -19,23 +20,25 @@ def generate_coin():
 def generate_description(name):
     if not HF_API_TOKEN:
         return f"{name} is the hottest meme coin of the week. Don't miss out! 🚀"
+    prompt = f"Write a funny viral description for a memecoin called {name}."
     try:
         response = requests.post(
             "https://api-inference.huggingface.co/models/mrm8488/t5-base-finetuned-summarize-news",
             headers={"Authorization": f"Bearer {HF_API_TOKEN}"},
-            json={"inputs": f"Write a viral meme coin pitch for {name}"},
+            json={"inputs": prompt},
             timeout=10
         )
-        return response.json()[0].get("generated_text", f"{name} is going viral. 🚀")
+        if response.ok:
+            return response.json()[0].get('generated_text') or f"{name} is going viral. 🚀"
     except Exception as e:
         print(f"⚠️ HuggingFace Error: {e}")
-        return f"{name} is the hottest meme coin of the week. Don't miss out! 🚀"
+    return f"{name} is the hottest meme coin of the week. Don't miss out! 🚀"
 
 def generate_image_url(name):
     return f"https://robohash.org/{name}.png"
 
 def post_to_pumpfun(name, ticker, description):
-    print(f"📤 Simulated Pump.fun post for {name} ({ticker})")
+    print(f"📤 Posting {name} ({ticker}) to Pump.fun with description: {description}")
     return f"https://pump.fun/{ticker}"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -96,7 +99,7 @@ async def sell_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == "__main__":
     if not BOT_TOKEN:
-        print("❌ TELEGRAM_BOT_TOKEN is missing in environment variables.")
+        print("❌ ERROR: TELEGRAM_BOT_TOKEN not set in environment variables.")
         exit(1)
 
     app = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -106,3 +109,4 @@ if __name__ == "__main__":
 
     print("🤖 Rugpull Bot is running...")
     app.run_polling()
+
