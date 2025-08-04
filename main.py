@@ -110,7 +110,6 @@ async def sell_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Could not fetch updated market data.")
 
 
-# ✅ Main entry point — no Updater usage
 def main():
     if not BOT_TOKEN:
         print("❌ ERROR: TELEGRAM_BOT_TOKEN not set in environment variables.")
