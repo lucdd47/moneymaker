@@ -7,6 +7,7 @@ from bip_utils import Bip39SeedGenerator, Bip44, Bip44Coins, Bip44Changes
 from solders.keypair import Keypair
 from solders.transaction import VersionedTransaction
 
+# Load wallets from environment variables WALLET_1 to WALLET_10
 def load_wallets():
     wallets = []
     for i in range(1, 11):
@@ -20,12 +21,14 @@ def load_wallets():
             print(f"❌ WALLET_{i} load error: {e}")
     return wallets
 
+# Convert seed phrase to Keypair
 def keypair_from_seed(seed_phrase):
     seed_bytes = Bip39SeedGenerator(seed_phrase).Generate()
     bip44 = Bip44.FromSeed(seed_bytes, Bip44Coins.SOLANA)
     priv_key = bip44.Purpose().Coin().Account(0).Change(Bip44Changes.CHAIN_EXT).AddressIndex(0).PrivateKey().Raw().ToBytes()
     return Keypair.from_seed(priv_key)
 
+# Submit signed transaction to Solana
 def send_signed_tx(wallet: Keypair, tx_base64: str):
     try:
         tx_bytes = base64.b64decode(tx_base64)
@@ -49,14 +52,15 @@ def send_signed_tx(wallet: Keypair, tx_base64: str):
     except Exception as e:
         print(f"❌ TX error: {e}")
 
+# BUY token using Jupiter
 def buy_token_jupiter(wallet: Keypair, mint_address: str):
     try:
         q = requests.get(
             "https://quote-api.jup.ag/v6/quote",
             params={
-                "inputMint": "So11111111111111111111111111111111111111112",
+                "inputMint": "So11111111111111111111111111111111111111112",  # SOL
                 "outputMint": mint_address,
-                "amount": 1_000_000,
+                "amount": 1_000_000,  # 0.001 SOL
                 "slippage": 1
             }
         )
@@ -64,6 +68,7 @@ def buy_token_jupiter(wallet: Keypair, mint_address: str):
         if not routes:
             print("❌ Buy quote failed")
             return
+
         sr = requests.post(
             "https://quote-api.jup.ag/v6/swap",
             headers={"Content-Type": "application/json"},
@@ -78,17 +83,19 @@ def buy_token_jupiter(wallet: Keypair, mint_address: str):
         if not swap_tx:
             print("❌ Buy swap failed")
             return
+
         send_signed_tx(wallet, swap_tx)
     except Exception as e:
         print(f"❌ Buy error: {e}")
 
+# SELL token using Jupiter
 def sell_token_jupiter(wallet: Keypair, mint_address: str):
     try:
         q = requests.get(
             "https://quote-api.jup.ag/v6/quote",
             params={
                 "inputMint": mint_address,
-                "outputMint": "So11111111111111111111111111111111111111112",
+                "outputMint": "So11111111111111111111111111111111111111112",  # SOL
                 "amount": 1_000_000,
                 "slippage": 1
             }
@@ -97,6 +104,7 @@ def sell_token_jupiter(wallet: Keypair, mint_address: str):
         if not routes:
             print("❌ Sell quote failed")
             return
+
         sr = requests.post(
             "https://quote-api.jup.ag/v6/swap",
             headers={"Content-Type": "application/json"},
@@ -111,20 +119,24 @@ def sell_token_jupiter(wallet: Keypair, mint_address: str):
         if not swap_tx:
             print("❌ Sell swap failed")
             return
+
         send_signed_tx(wallet, swap_tx)
     except Exception as e:
         print(f"❌ Sell error: {e}")
 
+# Buy token with all loaded wallets
 def buy_token_with_all_wallets(mint_address: str):
     for i, wallet in enumerate(load_wallets(), 1):
         print(f"🟢 Wallet {i} buying {mint_address}")
         buy_token_jupiter(wallet, mint_address)
 
+# Sell token with all loaded wallets
 def sell_token_with_all_wallets(mint_address: str):
     for i, wallet in enumerate(load_wallets(), 1):
         print(f"🔴 Wallet {i} selling {mint_address}")
         sell_token_jupiter(wallet, mint_address)
 
+# Fetch price and market cap
 def fetch_market_data(mint_address: str):
     try:
         r = requests.get(f"https://api.dexscreener.com/latest/dex/pairs/solana/{mint_address}")
