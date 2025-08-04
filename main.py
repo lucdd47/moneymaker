@@ -29,7 +29,7 @@ def generate_description(name):
             timeout=10
         )
         if response.ok:
-            return response.json()[0].get('generated_text', '') or f"{name} is going viral. 🚀"
+            return response.json()[0].get('generated_text') or f"{name} is going viral. 🚀"
     except Exception as e:
         print(f"⚠️ HuggingFace Error: {e}")
     return f"{name} is the hottest meme coin of the week. Don't miss out! 🚀"
@@ -99,13 +99,13 @@ async def sell_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == "__main__":
     if not BOT_TOKEN:
-        print("❌ ERROR: TELEGRAM_BOT_TOKEN not set in environment variables.")
+        print("❌ ERROR: TELEGRAM_BOT_TOKEN not set.")
         exit(1)
 
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("create_coin", create_coin))
-    application.add_handler(CommandHandler("sell_all", sell_all))
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("create_coin", create_coin))
+    app.add_handler(CommandHandler("sell_all", sell_all))
 
     print("🤖 Rugpull Bot is running...")
-    application.run_polling()
+    app.run_polling()
